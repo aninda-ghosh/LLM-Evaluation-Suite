@@ -1,0 +1,32 @@
+{
+  "qwen2.5-0.5b": {
+    "hf_repo": "Qwen/Qwen2.5-0.5B-Instruct",
+    "description": "Qwen 2.5 0.5B Instruct",
+    "batch_size": 1,
+    "aliases": ["qwen-0.6b", "qwen-0.5b"]
+  },
+  "qwen3.5-2b": {
+    "hf_repo": "Qwen/Qwen3.5-2B",
+    "description": "Qwen 3.5 2B",
+    "batch_size": 1,
+    "aliases": ["qwen-2b"]
+  },
+  "qwen2.5-3b": {
+    "hf_repo": "Qwen/Qwen2.5-3B-Instruct",
+    "description": "Qwen 2.5 3B Instruct",
+    "batch_size": 1,
+    "aliases": ["qwen-4b", "qwen-3b"]
+  },
+  "gemma-2-2b": {
+    "hf_repo": "google/gemma-2-2b-it",
+    "description": "Google Gemma 2 2B Instruct",
+    "batch_size": 1,
+    "aliases": ["gemma2-2b"]
+  },
+  "gemma-4-e2b": {
+    "hf_repo": "google/gemma-4-E2B-it",
+    "description": "Google Gemma 4 E2B Instruct",
+    "batch_size": 1,
+    "aliases": ["gemma-4-2b", "gemma4-2b"]
+  }
+}

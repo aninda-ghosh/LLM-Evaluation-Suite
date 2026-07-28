@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Large Download Directories & Local Caches
+models/
+data/
+.cache/
+
+# Outputs, Logs & Evaluation Results
+outputs/
+results*.json
+*.log
+
+# IDE & Environment
+.vscode/
+.idea/
+.DS_Store
+.env

@@ -1,0 +1,21 @@
+# LLM Evaluation Suite Configuration
+
+models:
+  - qwen2.5-0.5b
+  - qwen3.5-2b
+  - qwen2.5-3b
+  - gemma-2-2b
+  - gemma-4-e2b
+
+datasets:
+  - mmlu
+  - gsm8k
+  - hellaswag
+  - truthfulqa
+
+options:
+  gpus: auto        # Set to 'auto' to auto-detect system GPUs, or specify list (e.g. [0, 1])
+  batch_size: 16    # Default batch size for GPU inference
+  limit: null       # Set to an integer (e.g. 50) for testing, or null for full dataset evaluation
+  debug: false      # Print detailed per-sample prompts and response analysis
+  output_dir: outputs
