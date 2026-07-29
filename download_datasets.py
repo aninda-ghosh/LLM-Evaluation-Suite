@@ -7,12 +7,14 @@ using Hugging Face Hub snapshot download AND exports structured JSON files to `.
 
 Supported Benchmarks:
     - mmlu        : Hugging Face 'cais/mmlu'
+    - mmlu_pro    : Hugging Face 'TIGER-Lab/MMLU-Pro' (up to 10 options per question)
     - gsm8k       : Hugging Face 'openai/gsm8k'
     - hellaswag   : Hugging Face 'Rowan/hellaswag'
     - truthfulqa  : Hugging Face 'domenicrosati/TruthfulQA' / 'truthful_qa'
 
 Usage:
     python3 download_datasets.py --benchmark mmlu
+    python3 download_datasets.py --benchmark mmlu_pro
     python3 download_datasets.py --benchmark gsm8k
     python3 download_datasets.py --benchmark hellaswag
     python3 download_datasets.py --benchmark truthfulqa
@@ -45,6 +47,10 @@ os.environ["TEMP"] = str(LOCAL_TMP_DIR)
 os.environ["TMP"] = str(LOCAL_TMP_DIR)
 os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0"
 os.environ["HF_XET_HIGH_PERFORMANCE"] = "0"
+# Disable the Xet/CAS transfer backend: it can fail parquet reconstruction with
+# HTTP 416 (Requested Range Not Satisfiable), notably on Windows. Forces plain HTTPS.
+os.environ["HF_HUB_DISABLE_XET"] = "1"
+os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
 
 
 def get_hf_token() -> str | None:
@@ -115,6 +121,46 @@ def fetch_mmlu_dataset(limit: int = None) -> tuple[list, str]:
         return items, repo_id
     except Exception as e:
         print(f"[ERROR] MMLU processing failed: {e}")
+        return [], repo_id
+
+
+def fetch_mmlu_pro_dataset(limit: int = None) -> tuple[list, str]:
+    """Fetches raw MMLU-Pro dataset from Hugging Face ('TIGER-Lab/MMLU-Pro').
+
+    MMLU-Pro has up to 10 options per question (padded with 'N/A'). Trailing
+    'N/A' pads are dropped; `answer` is the integer index of the correct option,
+    consistent with the MMLU schema. Note: scoring MMLU-Pro requires an evaluator
+    that supports more than 4 choices (A-J), not the existing 4-way mmlu evaluator.
+    """
+    repo_id = "TIGER-Lab/MMLU-Pro"
+    raw_dest = LOCAL_RAW_DATA_DIR / "mmlu_pro"
+    download_raw_hf_repo(repo_id, raw_dest)
+
+    print("[INFO] Processing MMLU-Pro items for JSON output...")
+    try:
+        from datasets import load_dataset
+        token = get_hf_token()
+        ds = load_dataset(
+            repo_id,
+            split="test",
+            cache_dir=str(LOCAL_CACHE_DIR / "huggingface" / "datasets"),
+            token=token
+        )
+        items = []
+        for i, item in enumerate(ds):
+            if limit and i >= limit:
+                break
+            options = [o for o in item.get("options", []) if o != "N/A"]
+            items.append({
+                "id": f"mmlu_pro_{i}",
+                "question": item.get("question", ""),
+                "choices": options,
+                "answer": item.get("answer_index", 0),
+                "category": item.get("category", "")
+            })
+        return items, repo_id
+    except Exception as e:
+        print(f"[ERROR] MMLU-Pro processing failed: {e}")
         return [], repo_id
 
 
@@ -220,6 +266,7 @@ def download_benchmark(benchmark_name: str, limit: int = None) -> bool:
 
     fetchers = {
         "mmlu": fetch_mmlu_dataset,
+        "mmlu_pro": fetch_mmlu_pro_dataset,
         "gsm8k": fetch_gsm8k_dataset,
         "hellaswag": fetch_hellaswag_dataset,
         "truthfulqa": fetch_truthfulqa_dataset
@@ -246,13 +293,13 @@ def download_benchmark(benchmark_name: str, limit: int = None) -> bool:
 
 def main():
     parser = argparse.ArgumentParser(description="Raw Hugging Face Benchmark Dataset Downloader")
-    parser.add_argument("--benchmark", type=str, choices=["mmlu", "gsm8k", "hellaswag", "truthfulqa"], help="Benchmark dataset to download")
+    parser.add_argument("--benchmark", type=str, choices=["mmlu", "mmlu_pro", "gsm8k", "hellaswag", "truthfulqa"], help="Benchmark dataset to download")
     parser.add_argument("--all", action="store_true", help="Download all benchmark datasets")
     parser.add_argument("--limit", type=int, default=None, help="Limit number of samples (e.g. --limit 50). Omit for full dataset.")
 
     args = parser.parse_args()
 
-    benchmarks_list = ["mmlu", "gsm8k", "hellaswag", "truthfulqa"]
+    benchmarks_list = ["mmlu", "mmlu_pro", "gsm8k", "hellaswag", "truthfulqa"]
 
     if args.all:
         print(f"\n==================================================")
@@ -268,6 +315,7 @@ def main():
     else:
         print("Specify a benchmark dataset to download:")
         print("  python3 download_datasets.py --benchmark mmlu")
+        print("  python3 download_datasets.py --benchmark mmlu_pro")
         print("  python3 download_datasets.py --benchmark gsm8k")
         print("  python3 download_datasets.py --benchmark hellaswag")
         print("  python3 download_datasets.py --benchmark truthfulqa")

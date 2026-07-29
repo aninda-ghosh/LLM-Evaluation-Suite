@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.2] - 2026-07-28
+
+### Added
+- **More benchmark models (`models.json`)**: registered instruct models up to 4B across four families — Qwen 2.5 (`qwen2.5-1.5b`), Qwen 3.5 (`qwen3.5-4b`), Gemma 3 (`gemma-3-1b`, `gemma-3-4b`), and Llama 3.2 (`llama-3.2-1b`, `llama-3.2-3b`). Llama and Gemma repos are gated and require Hugging Face access approval.
+- **MMLU-Pro dataset (`download_datasets.py`)**: added `--benchmark mmlu_pro` fetching `TIGER-Lab/MMLU-Pro` (test split, up to 10 options per question); included in `--all`. Note: scoring requires a >4-choice (A–J) evaluator, not the existing 4-way MMLU evaluator.
+
+### Fixed
+- **Hugging Face Xet download failures**: disabled the Xet/CAS transfer backend (`HF_HUB_DISABLE_XET=1`) in both download scripts to avoid `HTTP 416 Requested Range Not Satisfiable` parquet reconstruction errors (seen on Windows), and silenced the symlink warning (`HF_HUB_DISABLE_SYMLINKS_WARNING=1`).
+
+---
+
 ## [1.0.1] - 2026-07-28
 
 ### Fixed

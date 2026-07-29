@@ -29,6 +29,11 @@ LOCAL_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 LOCAL_TMP_DIR.mkdir(parents=True, exist_ok=True)
 LOCAL_MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
+# Disable Xet/CAS backend for the in-process snapshot_download path too
+# (can fail with HTTP 416 during reconstruction, especially on Windows).
+os.environ["HF_HUB_DISABLE_XET"] = "1"
+os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
+
 
 def get_hf_token():
     """Retrieves Hugging Face authentication token from env or token files."""
@@ -57,6 +62,9 @@ def get_subprocess_env():
     env["TMP"] = str(LOCAL_TMP_DIR)
     env["HF_XET_HIGH_PERFORMANCE"] = "0"
     env["HF_HUB_ENABLE_HF_TRANSFER"] = "0"
+    # Disable Xet/CAS backend (can fail with HTTP 416 during reconstruction, esp. on Windows).
+    env["HF_HUB_DISABLE_XET"] = "1"
+    env["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
 
     token = get_hf_token()
     if token:

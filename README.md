@@ -25,23 +25,23 @@ export HF_TOKEN="your_hf_token"
 Download raw Hugging Face dataset repositories into `./data/raw/` and export JSON files into `./data/`:
 ```bash
 # Download all datasets (MMLU, GSM8K, HellaSwag, TruthfulQA)
-python3 download_datasets.py --all
+python download_datasets.py --all
 
 # Download test samples (50 items per dataset)
-python3 download_datasets.py --all --limit 50
+python download_datasets.py --all --limit 50
 ```
 
 ### 4. Download Model Weights
 Download model weights into `./models/`:
 ```bash
 # Download a pre-configured model key
-python3 download_models.py --model gemma-4-e2b
+python download_models.py --model gemma-4-e2b
 
 # Download any Hugging Face repository ID
-python3 download_models.py --model Qwen/Qwen2.5-1.5B-Instruct
+python download_models.py --model Qwen/Qwen2.5-1.5B-Instruct
 
 # Download all configured models in models.json
-python3 download_models.py --all
+python download_models.py --all
 ```
 
 ---
@@ -51,21 +51,21 @@ python3 download_models.py --all
 ### Single Benchmark Evaluation
 ```bash
 # Evaluate on MMLU
-python3 eval.py --model gemma-4-e2b --benchmark mmlu --batch_size 1 --debug
+python eval.py --model gemma-4-e2b --benchmark mmlu --batch_size 1 --debug
 
 # Evaluate on GSM8K
-python3 eval.py --model gemma-4-e2b --benchmark gsm8k --batch_size 1
+python eval.py --model gemma-4-e2b --benchmark gsm8k --batch_size 1
 
 # Evaluate on HellaSwag
-python3 eval.py --model gemma-4-e2b --benchmark hellaswag --batch_size 1
+python eval.py --model gemma-4-e2b --benchmark hellaswag --batch_size 1
 
 # Evaluate on TruthfulQA
-python3 eval.py --model gemma-4-e2b --benchmark truthfulqa --batch_size 1
+python eval.py --model gemma-4-e2b --benchmark truthfulqa --batch_size 1
 ```
 
 ### Multi-GPU Suite Execution
 ```bash
-python3 run_suite.py
+python run_suite.py
 ```
 
 ---
