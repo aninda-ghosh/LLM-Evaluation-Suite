@@ -16,6 +16,20 @@ def format_prompt(item: dict) -> str:
 def score_item(item: dict, clean_response: str) -> tuple:
     """
     Scores the model output against the raw GSM8K record.
+
+    Scoring algorithm (exact numeric match):
+      1. Read the gold answer from item["answer"], split on "####", take the text
+         after it, strip whitespace and remove commas -> `expected`.
+      2. Extract the model's number from the response:
+           a. If "#### <number>" is present, use that number.
+           b. Otherwise, strip commas and take the LAST number in the response.
+      3. If both a predicted and expected number exist, pass when
+         abs(pred - expected) < 1e-3 (float compare, so 18 / 18.0 / 18.00 match).
+         A non-numeric value counts as fail.
+      4. If no number can be extracted, fail ("No numeric answer found").
+
+    Note: matching is purely numeric; units, "$", and surrounding text are ignored.
+    Returns (is_pass, extracted_number, reason).
     """
     raw_answer_text = item.get("answer", "")
     answer_parts = raw_answer_text.split("####")

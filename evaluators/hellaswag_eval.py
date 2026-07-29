@@ -18,6 +18,17 @@ def format_prompt(item: dict) -> str:
 def score_item(item: dict, clean_response: str) -> tuple:
     """
     Scores the model output against the raw HellaSwag record.
+
+    Scoring algorithm (4-way multiple choice, sentence completion):
+      1. Map item["label"] (index 0-3) to a letter (0->A ... 3->D) -> `expected`.
+      2. Extract the model's letter:
+           a. Look for a phrase like "answer is X" / "option: X" / "choice X"
+              (case-insensitive, X in A-D).
+           b. Otherwise take the LAST standalone A-D letter in the response.
+           c. If neither matches, use the first character of the response.
+      3. Pass when pred == expected.
+
+    Returns (is_pass, extracted_choice, reason).
     """
     raw_label = item.get("label", 0)
     label_idx = int(raw_label) if str(raw_label).isdigit() else 0

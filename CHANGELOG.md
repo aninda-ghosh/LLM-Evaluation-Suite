@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.1] - 2026-07-28
+
+### Fixed
+- **TruthfulQA option ordering (`evaluators/truthfulqa_eval.py`)**: Raw MC1 data always lists the correct choice first, so the correct answer landed in option **"A"** for all 817 items. Scores therefore reflected a model's positional bias toward "A" rather than truthfulness. Options are now shuffled with a deterministic per-item permutation (seeded by item id via `md5`), shared between `format_prompt` and `score_item` so prompt and grading stay consistent across calls and runs. **TruthfulQA must be re-run to produce valid results; GSM8K, MMLU, and HellaSwag are unaffected.**
+
+### Documentation
+- Added the step-by-step scoring algorithm to each evaluator's `score_item` docstring (`gsm8k_eval.py`, `mmlu_eval.py`, `hellaswag_eval.py`, `truthfulqa_eval.py`).
+- Added `docs/scoring.md` documenting per-benchmark scoring methodology, report aggregation, and known extraction limitations.
+
+---
+
 ## [1.0.0] - 2026-07-28
 
 ### Added

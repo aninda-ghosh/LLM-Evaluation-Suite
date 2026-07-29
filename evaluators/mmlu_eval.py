@@ -18,6 +18,18 @@ def format_prompt(item: dict) -> str:
 def score_item(item: dict, clean_response: str) -> tuple:
     """
     Scores the model output against the raw MMLU record.
+
+    Scoring algorithm (4-way multiple choice):
+      1. Map the gold index in item["answer"] (int 0-3) to a letter
+         (0->A, 1->B, 2->C, 3->D) -> `expected`.
+      2. Extract the model's letter:
+           a. Look for a phrase like "answer is X" / "option: X" / "choice X"
+              (case-insensitive, X in A-D).
+           b. Otherwise take the LAST standalone A-D letter in the response.
+           c. If neither matches, use the first character of the response.
+      3. Pass when pred == expected.
+
+    Returns (is_pass, extracted_choice, reason).
     """
     raw_answer = item.get("answer", 0)
     expected = chr(65 + int(raw_answer)) if isinstance(raw_answer, int) else str(raw_answer).upper()
