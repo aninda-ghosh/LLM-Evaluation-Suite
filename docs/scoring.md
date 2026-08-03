@@ -132,3 +132,29 @@ samples it has. Accuracy columns in the matrix are the same per-benchmark values
   can misread the intended answer.
 - **GSM8K takes the last number** when there is no `####` marker, which can pick up
   an intermediate value if the model doesn't follow the format.
+
+---
+
+## Protocol Differences & Leaderboard Discrepancy Analysis
+
+When comparing local 0-shot evaluation scores against official self-reported benchmark leaderboards (e.g. TIGER-Lab MMLU-Pro or Hugging Face Leaderboards), significant score gaps are frequently observed. The primary technical causes include:
+
+### 1. 0-Shot Direct vs. 5-Shot Chain-of-Thought (CoT)
+- **Official Leaderboards ("Self-Reported")**: Typically evaluate using **5-shot Chain-of-Thought (CoT)** prompts containing 5 fully solved in-context exemplars per subject domain.
+- **Local Suite Execution**: Evaluates using **0-shot direct choice letter prompting** (`"Answer with the letter (A-J) only"`).
+- **Impact**: On complex 10-choice benchmarks like MMLU-Pro, 5-shot CoT adds **+25% to +35% accuracy** over 0-shot direct generation for 2B–4B models.
+
+### 2. Internal Thinking Mode & Reasoning Tokens
+- Modern reasoning models (e.g., Qwen 3.5, Gemma 4) use special `<think>` reasoning pathways.
+- Forcing a 0-shot letter response on token #1 (`enable_thinking=False`) cuts off the model's scratchpad tokens, preventing it from eliminating incorrect choices before making its selection.
+
+### 3. MMLU (4 Choices) vs. MMLU-Pro (10 Choices)
+- Standard MMLU features 4 options (random baseline $25\%$).
+- MMLU-Pro expands questions to 10 options ($A$ through $J$, random baseline $10\%$) with domain-expert adversarial distractors. Without CoT scratchpad reasoning, model performance collapses towards the random baseline.
+
+### 4. Self-Consistency vs. Greedy Decoding
+- **Self-Reported Runs**: Often use **Self-Consistency (Majority Voting)** over $N=10$ or $N=20$ sampled reasoning paths.
+- **Local Suite**: Uses deterministic **Greedy Decoding** (`do_sample=False`, `temperature=0.0`) taking a single trajectory per item.
+
+### 5. Unfinished Sample Accounting
+- Interrupted evaluation runs are penalized by counting un-evaluated items as **`Didn't Finish`** against the full expected dataset total (e.g., 12,032 for MMLU-Pro), ensuring mathematically rigorous model comparison across the entire dataset base.
