@@ -1,46 +1,25 @@
 """
-TruthfulQA Benchmark Evaluator Class (MC1).
-Shuffles options deterministically per item (md5 seed) so prompt and scoring agree.
+MMLU-Pro Evaluator Class.
+Extracts 10-choice option letters (A-J) with text contradiction validation.
 """
 
 import re
-import random
-import hashlib
 from evaluators.base import BaseEvaluator
 
 
-class TruthfulQAEvaluator(BaseEvaluator):
-    """TruthfulQA (MC1) dataset evaluator."""
-
-    def _get_shuffled_choices(self, item: dict) -> tuple[list[str], int]:
-        mc1 = item.get("mc1_targets", {})
-        choices = mc1.get("choices", []) if isinstance(mc1, dict) else []
-        labels = mc1.get("labels", []) if isinstance(mc1, dict) else []
-
-        if not choices:
-            choices = item.get("choices", [])
-            labels = item.get("labels", []) if not labels else labels
-
-        correct_idx = labels.index(1) if (labels and 1 in labels) else 0
-        key = str(item.get("id") or item.get("question") or "")
-        seed = int(hashlib.md5(key.encode("utf-8")).hexdigest()[:8], 16)
-
-        order = list(range(len(choices)))
-        random.Random(seed).shuffle(order)
-
-        shuffled_choices = [choices[i] for i in order]
-        new_correct_idx = order.index(correct_idx) if choices else 0
-        return shuffled_choices, new_correct_idx
+class MMLUProEvaluator(BaseEvaluator):
+    """MMLU-Pro multi-choice (up to 10 options) dataset evaluator."""
 
     def format_prompt(self, item: dict) -> str:
         question = item.get("question", "")
-        choices, _ = self._get_shuffled_choices(item)
+        choices = item.get("choices", [])
+        max_letter = chr(65 + max(len(choices) - 1, 0)) if choices else "J"
         options_text = "\n".join([f"{chr(65+i)}) {opt}" for i, opt in enumerate(choices)])
-        return f"Question: {question}\nOptions:\n{options_text}\nAnswer with the letter of the correct choice only."
+        return f"Question: {question}\nOptions:\n{options_text}\nAnswer with the letter (A-{max_letter}) only."
 
     def get_expected_answer(self, item: dict) -> str:
-        _, correct_idx = self._get_shuffled_choices(item)
-        return chr(65 + correct_idx) if correct_idx < 26 else "A"
+        raw_answer = item.get("answer", 0)
+        return chr(65 + int(raw_answer)) if isinstance(raw_answer, int) or str(raw_answer).isdigit() else str(raw_answer).upper()
 
     def extract_think(self, response_text: str) -> str:
         patterns = [
@@ -57,8 +36,8 @@ class TruthfulQAEvaluator(BaseEvaluator):
         return "N/A (Direct Answer)"
 
     def extract_answer(self, response_text: str, item: dict = None) -> str:
-        choices, _ = self._get_shuffled_choices(item) if item else ([], 0)
-        max_letter = chr(65 + max(len(choices) - 1, 0)) if choices else "Z"
+        choices = item.get("choices", []) if item else []
+        max_letter = chr(65 + max(len(choices) - 1, 0)) if choices else "J"
         pattern = f"[A-{max_letter}]"
 
         clean = re.sub(r"<(think|thought|reasoning|scratchpad)>.*?(?:</\1>|$)", "", response_text, flags=re.DOTALL | re.IGNORECASE).strip()
@@ -103,8 +82,8 @@ class TruthfulQAEvaluator(BaseEvaluator):
         return True, ""
 
     def score_item(self, item: dict, response_text: str) -> tuple[bool, str, str]:
-        choices, _ = self._get_shuffled_choices(item)
         expected = self.get_expected_answer(item)
+        choices = item.get("choices", [])
         pred = self.extract_answer(response_text, item)
 
         is_valid_text, text_reason = self.validate_choice_text(response_text, pred, choices)

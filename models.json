@@ -1,68 +1,57 @@
 {
-  "qwen2.5-0.5b": {
+  "Qwen2.5-0.5B-Instruct": {
     "hf_repo": "Qwen/Qwen2.5-0.5B-Instruct",
     "description": "Qwen 2.5 0.5B Instruct",
-    "batch_size": 1,
-    "aliases": ["qwen-0.6b", "qwen-0.5b"]
+    "batch_size": 1
   },
-  "qwen2.5-1.5b": {
+  "Qwen2.5-1.5B-Instruct": {
     "hf_repo": "Qwen/Qwen2.5-1.5B-Instruct",
     "description": "Qwen 2.5 1.5B Instruct",
-    "batch_size": 1,
-    "aliases": ["qwen-1.5b"]
+    "batch_size": 1
   },
-  "qwen2.5-3b": {
+  "Qwen2.5-3B-Instruct": {
     "hf_repo": "Qwen/Qwen2.5-3B-Instruct",
     "description": "Qwen 2.5 3B Instruct",
-    "batch_size": 1,
-    "aliases": ["qwen-4b", "qwen-3b"]
+    "batch_size": 1
   },
-  "qwen3.5-2b": {
+  "Qwen3.5-2B": {
     "hf_repo": "Qwen/Qwen3.5-2B",
-    "description": "Qwen 3.5 2B (instruct-native)",
-    "batch_size": 1,
-    "aliases": ["qwen-2b"]
+    "description": "Qwen 3.5 2B (instruct-native, no -Instruct suffix)",
+    "batch_size": 1
   },
-  "qwen3.5-4b": {
+  "Qwen3.5-4B": {
     "hf_repo": "Qwen/Qwen3.5-4B",
-    "description": "Qwen 3.5 4B (instruct-native)",
-    "batch_size": 1,
-    "aliases": ["qwen3.5", "qwen-3.5-4b"]
+    "description": "Qwen 3.5 4B (instruct-native, no -Instruct suffix)",
+    "batch_size": 1
   },
-  "gemma-2-2b": {
+  "gemma-2-2b-it": {
     "hf_repo": "google/gemma-2-2b-it",
     "description": "Google Gemma 2 2B Instruct",
-    "batch_size": 1,
-    "aliases": ["gemma2-2b"]
+    "batch_size": 1
   },
-  "gemma-3-1b": {
+  "gemma-3-1b-it": {
     "hf_repo": "google/gemma-3-1b-it",
     "description": "Google Gemma 3 1B Instruct",
-    "batch_size": 1,
-    "aliases": ["gemma3-1b"]
+    "batch_size": 1
   },
-  "gemma-3-4b": {
+  "gemma-3-4b-it": {
     "hf_repo": "google/gemma-3-4b-it",
     "description": "Google Gemma 3 4B Instruct",
-    "batch_size": 1,
-    "aliases": ["gemma3-4b"]
+    "batch_size": 1
   },
-  "gemma-4-e2b": {
+  "gemma-4-E2B-it": {
     "hf_repo": "google/gemma-4-E2B-it",
     "description": "Google Gemma 4 E2B Instruct",
-    "batch_size": 1,
-    "aliases": ["gemma-4-2b", "gemma4-2b"]
+    "batch_size": 1
   },
-  "llama-3.2-1b": {
+  "Llama-3.2-1B-Instruct": {
     "hf_repo": "meta-llama/Llama-3.2-1B-Instruct",
     "description": "Meta Llama 3.2 1B Instruct (gated - requires HF access approval)",
-    "batch_size": 1,
-    "aliases": ["llama3.2-1b", "llama-1b"]
+    "batch_size": 1
   },
-  "llama-3.2-3b": {
+  "Llama-3.2-3B-Instruct": {
     "hf_repo": "meta-llama/Llama-3.2-3B-Instruct",
     "description": "Meta Llama 3.2 3B Instruct (gated - requires HF access approval)",
-    "batch_size": 1,
-    "aliases": ["llama3.2-3b", "llama-3b"]
+    "batch_size": 1
   }
 }

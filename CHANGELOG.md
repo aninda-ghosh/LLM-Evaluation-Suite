@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] - 2026-08-03
+
+### Added
+- **Score suite & charts (`score_suite.py`)**: Added Stage 2 scoring engine that generates per-benchmark light-theme stacked bar charts (`charts/<benchmark>_comparison.png`) and per-benchmark CSV results (`results_<benchmark>.csv`).
+- **Docs syncing**: Automatically copy latest `report.md` and chart images into `docs/` and `docs/charts/` for Git rendering.
+- **Batched inference docs**: Added `docs/batched_inference.md` explaining decoder-only left padding and GPU batching logic.
+- **GSM8K regex parser**: Multi-pattern fallback extraction for `####`, LaTeX `\boxed{}`, and `Final Answer:`.
+
+### Fixed
+- **Bfloat16 precision (`eval.py`)**: Default GPU execution to `torch.bfloat16` to prevent NaN underflow in Gemma models.
+- **Unfinished sample metrics**: Track missing/un-evaluated items against official dataset totals in `did_not_finish` so all model totals match.
+
+---
+
 ## [1.0.2] - 2026-07-28
 
 ### Added

@@ -1,28 +1,31 @@
 """
 Evaluators Registry Package.
-Provides access to evaluator modules for MMLU, GSM8K, HellaSwag, and TruthfulQA.
+Maps benchmark names to Evaluator Class instances inheriting from BaseEvaluator.
 """
 
-from evaluators import mmlu_eval, gsm8k_eval, hellaswag_eval, truthfulqa_eval
+from evaluators.gsm8k_eval import GSM8KEvaluator
+from evaluators.mmlu_eval import MMLUEvaluator
+from evaluators.mmlu_pro_eval import MMLUProEvaluator
+from evaluators.hellaswag_eval import HellaSwagEvaluator
+from evaluators.truthfulqa_eval import TruthfulQAEvaluator
 
-_EVALUATOR_MAP = {
-    "mmlu": mmlu_eval,
-    "gsm8k": gsm8k_eval,
-    "hellaswag": hellaswag_eval,
-    "truthfulqa": truthfulqa_eval,
+_EVALUATOR_CLASSES = {
+    "mmlu_pro": MMLUProEvaluator,
+    "mmlu": MMLUEvaluator,
+    "gsm8k": GSM8KEvaluator,
+    "hellaswag": HellaSwagEvaluator,
+    "truthfulqa": TruthfulQAEvaluator,
 }
+
+_EVALUATORS = _EVALUATOR_CLASSES  # Alias for backward compatibility
 
 
 def get_evaluator(benchmark_name: str):
-    """
-    Returns the evaluator module for benchmark_name.
-    Each evaluator module exposes:
-    - format_prompt(raw_item: dict) -> str
-    - score_item(raw_item: dict, clean_response: str) -> tuple[bool, str, str]
-    """
-    b_lower = benchmark_name.lower().strip()
-    for key, module in _EVALUATOR_MAP.items():
-        if key in b_lower:
-            return module
-    # Default fallback to MMLU evaluator
-    return mmlu_eval
+    """Returns an instance of the Evaluator Class matching benchmark_name."""
+    name = benchmark_name.lower().strip()
+    if "mmlu_pro" in name:
+        return MMLUProEvaluator()
+    for key, cls in _EVALUATOR_CLASSES.items():
+        if key in name:
+            return cls()
+    return MMLUEvaluator()

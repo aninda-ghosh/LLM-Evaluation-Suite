@@ -4,3 +4,7 @@ datasets>=2.18.0
 huggingface_hub>=0.23.0
 accelerate>=0.28.0
 pyyaml
+sentencepiece
+tiktoken
+protobuf
+matplotlib>=3.7.0

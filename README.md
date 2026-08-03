@@ -1,132 +1,111 @@
 # LLM Evaluation Suite
 
-A Python evaluation platform for benchmarking Large Language Models (LLMs) across standardized datasets (MMLU, GSM8K, HellaSwag, TruthfulQA) with PyTorch/Transformers inference on multi-GPU systems.
+A clean, modular Python suite for evaluating Large Language Models (LLMs) across standardized benchmark datasets (**MMLU**, **MMLU-Pro**, **GSM8K**, **HellaSwag**, **TruthfulQA**) using PyTorch / Transformers on multi-GPU systems.
 
 ---
 
 ## Quickstart Guide
 
-### 1. Install Dependencies
+### 1. Installation & Authentication
 ```bash
+# Install dependencies
 pip install -r requirements.txt
-```
 
-### 2. Configure Hugging Face Authentication
-Authenticate to download gated models and dataset repositories:
-```bash
-hf auth login
-```
-Or set the environment variable:
-```bash
+# Authenticate with Hugging Face (for gated models/datasets)
 export HF_TOKEN="your_hf_token"
 ```
 
-### 3. Download Benchmark Datasets
-Download raw Hugging Face dataset repositories into `./data/raw/` and export JSON files into `./data/`:
+### 2. Download Datasets & Models
 ```bash
-# Download all datasets (MMLU, GSM8K, HellaSwag, TruthfulQA)
+# Download benchmark datasets into ./data/
 python download_datasets.py --all
 
-# Download test samples (50 items per dataset)
-python download_datasets.py --all --limit 50
+# Download model weights into ./models/
+python download_models.py --model Qwen/Qwen2.5-0.5B-Instruct
 ```
 
-### 4. Download Model Weights
-Download model weights into `./models/`:
+### 3. Run Two-Stage Pipeline
+
 ```bash
-# Download a pre-configured model key
-python download_models.py --model gemma-4-e2b
+# Stage 1: Run raw GPU model inference across active GPUs
+python3 run_suite.py
 
-# Download any Hugging Face repository ID
-python download_models.py --model Qwen/Qwen2.5-1.5B-Instruct
-
-# Download all configured models in models.json
-python download_models.py --all
+# Stage 2: Extract answers, score generations, and create reports
+python3 score_suite.py --latest
+# (or target a specific folder: python3 score_suite.py --run_dir outputs/run_20260730_120000)
 ```
 
 ---
 
-## Running Evaluations
+## Two-Stage Architecture
 
-### Single Benchmark Evaluation
-```bash
-# Evaluate on MMLU
-python eval.py --model gemma-4-e2b --benchmark mmlu --batch_size 1 --debug
-
-# Evaluate on GSM8K
-python eval.py --model gemma-4-e2b --benchmark gsm8k --batch_size 1
-
-# Evaluate on HellaSwag
-python eval.py --model gemma-4-e2b --benchmark hellaswag --batch_size 1
-
-# Evaluate on TruthfulQA
-python eval.py --model gemma-4-e2b --benchmark truthfulqa --batch_size 1
+```text
+  [Dataset JSON]
+        |
+        v
++-----------------+   Raw JSONL   +-----------------+
+|     STAGE 1     |-------------->|     STAGE 2     |---> [report.md]
+| GPU Inference   |               | Extract & Score |---> [results.csv]
++-----------------+               +-----------------+---> [summary.json]
 ```
 
-### Multi-GPU Suite Execution
-```bash
-python run_suite.py
-```
+1. Stage 1 - Raw GPU Generation (`eval.py` / `run_suite.py`):
+   - Loads model onto a pinned GPU.
+   - Formats prompts via evaluator classes (`evaluator.format_prompt`).
+   - Runs batched inference and writes outputs (`prompt`, `dataset_item`, `model_output`, latency, throughput) to a JSONL log file.
+
+2. Stage 2 - Extract, Evaluate & Score (`score_suite.py`):
+   - Reads raw JSONL entries from Stage 1.
+   - Uses benchmark-specific evaluator classes (`BaseEvaluator` subclasses) to extract answers (`extract_answer`) and think blocks (`extract_think`).
+   - Scores extracted answers against gold standards (`score_item`) and generates consolidated reports.
 
 ---
 
-## Benchmark Datasets
+## Supported Benchmark Datasets
 
-| Dataset | Source Repository | Domain | Metric |
+| Dataset | Metric | Class Evaluator | Description |
 | :--- | :--- | :--- | :--- |
-| **MMLU** | `cais/mmlu` | General Knowledge | Choice Accuracy (%) |
-| **GSM8K** | `openai/gsm8k` | Math & Reasoning | Numerical Accuracy (%) |
-| **HellaSwag** | `Rowan/hellaswag` | Commonsense Reasoning | Choice Accuracy (%) |
-| **TruthfulQA** | `truthful_qa` | Truthfulness | Choice Accuracy (%) |
+| **GSM8K** | Numerical Accuracy (%) | `GSM8KEvaluator` | Grade school math word problems. |
+| **MMLU** | Choice Accuracy (%) | `MMLUEvaluator` | 4-choice general knowledge test. |
+| **MMLU-Pro** | Choice Accuracy (%) | `MMLUProEvaluator` | Advanced multi-domain test (up to 10 choices). |
+| **HellaSwag** | Choice Accuracy (%) | `HellaSwagEvaluator` | Commonsense context completion. |
+| **TruthfulQA** | Choice Accuracy (%) | `TruthfulQAEvaluator` | Truthfulness & misconception test. |
 
 ---
 
-## Benchmark Results
+## Core Scripts & CLI Options
 
-> Full-dataset evaluation run on **2x GPU** (batch size `16`).  
+* **`eval.py`**: Single-model evaluation job on a single pinned GPU.
+  ```bash
+  python3 eval.py --model Qwen2.5-0.5B-Instruct --benchmark gsm8k --gpu 0 --batch_size 1
+  ```
 
-| Model | GSM8K | MMLU | HellaSwag | TruthfulQA | Avg Latency | Speed |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| `qwen2.5-3b` | **82.94%** | **62.95%** | **76.29%** | **56.43%** | 1933.77 ms | 28.94 tok/s |
-| `gemma-4-e2b` | 80.82% | 56.96% | 56.46% | 52.75% | 3093.76 ms | 34.40 tok/s |
-| `qwen3.5-2b` | 69.07% | 58.00% | 62.93% | 39.90% | 1687.21 ms | 39.36 tok/s |
-| `gemma-2-2b` | 59.89% | 50.29% | 59.84% | 42.96% | 2330.26 ms | 43.83 tok/s |
-| `qwen2.5-0.5b` | 43.97% | 35.94% | 33.71% | 30.72% | 714.29 ms | **122.57 tok/s** |
+* **`run_suite.py`**: Multi-GPU Stage 1 raw inference orchestrator.
+  ```bash
+  python3 run_suite.py              # Full Stage 1 run
+  python3 run_suite.py --preflight 4  # Quick test with 4 samples per benchmark
+  ```
 
-**Key Takeaways:**
-- `qwen2.5-3b` leads on accuracy across all four benchmarks.
-- `qwen2.5-0.5b` is the fastest at **122.57 tok/s** with the lowest latency (**714 ms**), making it the best fit for latency-sensitive on-device workloads.
-- `qwen3.5-2b` offers the best accuracy-to-speed balance among the 2B-class models.
-
----
-
-## CLI Reference
-
-| Flag | Description | Example |
-| :--- | :--- | :--- |
-| `--model` | Model key, alias, local path, or HF repo ID | `--model gemma-4-e2b` |
-| `--benchmark` | Benchmark dataset (`mmlu`, `gsm8k`, `hellaswag`, `truthfulqa`, `all`) | `--benchmark gsm8k` |
-| `--batch_size` | Parallel sequences per batch | `--batch_size 1` |
-| `--limit` | Maximum samples to evaluate | `--limit 50` |
-| `--debug` | Print prompt, model response, and score analysis | `--debug` |
-| `--output` | Summary JSON output path | `--output results.json` |
+* **`score_suite.py`**: Stage 2 scoring engine.
+  ```bash
+  python3 score_suite.py --latest
+  python3 score_suite.py --run_dir outputs/run_20260730_120000
+  ```
 
 ---
 
-## Batch Size, Latency & Throughput Metrics
+## Output Files
 
-The evaluation engine calculates performance metrics per batch as follows:
+Each run creates an output directory under `outputs/run_<timestamp>/`:
 
-$$\text{Aggregate Speed (tok/s)} = \frac{\text{Total Generated Tokens Across All Batch Items}}{\text{Batch Wall-Clock Time (sec)}}$$
+- **`report.md`**: Human-readable markdown comparison table of model accuracies.
+- **`results.csv`**: Tidy CSV containing accuracy, latency, and token speed metrics.
+- **`summary.json`**: Machine-readable JSON summary of the entire run.
+- **`logs/`**: Raw and scored `.jsonl` task files containing per-sample outputs.
 
-$$\text{Average Latency per Sample (ms)} = \left(\frac{\text{Batch Wall-Clock Time (sec)}}{\text{Batch Size}}\right) \times 1000$$
+---
 
-### Performance Effects of Increasing Batch Size ($B$)
+## Detailed Documentation
 
-* **Aggregate Speed (`tok/s`)**: **Increases (Higher Throughput)**
-  * **GPU Parallelism**: Matrix multiplications across multiple sequences execute concurrently. Model weights loaded into VRAM are reused across $B$ prompts per step, maximizing GPU compute utilization.
-* **Average Latency per Sample (`ms`)**: **Decreases (Lower Latency per Sample)**
-  * **Amortization**: Total batch wall-clock time increases slightly, but dividing that time by $B$ results in a lower average per-sample latency compared to sequential processing.
-* **Trade-offs**:
-  * **VRAM Usage**: Larger batch sizes consume more CUDA memory for KV-cache and activation tensors (risk of `CUDA OutOfMemoryError`).
-  * **Padding Overhead**: Uneven prompt lengths in a batch introduce padding tokens.
+- **[Batched Inference & Padding Guide](docs/batched_inference.md)**: Comprehensive explanation of GPU batching, left-padding vs. right-padding, ASCII diagrams, and throughput metrics.
+- **[Scoring Methodology Guide](docs/scoring.md)**: Detailed breakdown of evaluation algorithms per benchmark dataset.
