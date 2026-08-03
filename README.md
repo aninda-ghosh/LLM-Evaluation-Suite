@@ -73,6 +73,29 @@ python3 score_suite.py --latest
 
 ---
 
+## Evaluation Reports & Visual Charts
+
+The latest benchmark evaluation results and interactive summary tables can be found in **[docs/report.md](docs/report.md)**.
+
+### Benchmark Model Comparisons
+
+#### GSM8K Math Reasoning
+![GSM8K Model Comparison](docs/charts/gsm8k_comparison.png)
+
+#### MMLU-Pro Advanced Benchmark
+![MMLU-Pro Model Comparison](docs/charts/mmlu_pro_comparison.png)
+
+#### MMLU General Knowledge
+![MMLU Model Comparison](docs/charts/mmlu_comparison.png)
+
+#### HellaSwag Commonsense Completion
+![HellaSwag Model Comparison](docs/charts/hellaswag_comparison.png)
+
+#### TruthfulQA Truthfulness
+![TruthfulQA Model Comparison](docs/charts/truthfulqa_comparison.png)
+
+---
+
 ## Core Scripts & CLI Options
 
 * **`eval.py`**: Single-model evaluation job on a single pinned GPU.
@@ -96,16 +119,18 @@ python3 score_suite.py --latest
 
 ## Output Files
 
-Each run creates an output directory under `outputs/run_<timestamp>/`:
+Each evaluation run generates output artifacts under `outputs/run_<timestamp>/` and automatically syncs the latest results to `docs/`:
 
-- **`report.md`**: Human-readable markdown comparison table of model accuracies.
-- **`results.csv`**: Tidy CSV containing accuracy, latency, and token speed metrics.
-- **`summary.json`**: Machine-readable JSON summary of the entire run.
-- **`logs/`**: Raw and scored `.jsonl` task files containing per-sample outputs.
+- **`report.md`**: Consolidated markdown report containing accuracy tables and embedded comparison charts.
+- **`results_<benchmark>.csv`**: Per-benchmark CSV files comparing all evaluated models sorted by accuracy.
+- **`charts/<benchmark>_comparison.png`**: High-contrast stacked bar charts illustrating Passed, Failed, and Didn't Finish sample counts per model.
+- **`summary.json`**: Machine-readable JSON summary of metrics and latency for all model-benchmark pairs.
+- **`logs/`**: Detailed raw and scored `.jsonl` files containing prompt text, model output, and answer extraction status.
 
 ---
 
 ## Detailed Documentation
 
+- **[Latest Benchmark Evaluation Report](docs/report.md)**: Complete benchmark evaluation report across all tested models.
 - **[Batched Inference & Padding Guide](docs/batched_inference.md)**: Comprehensive explanation of GPU batching, left-padding vs. right-padding, ASCII diagrams, and throughput metrics.
 - **[Scoring Methodology Guide](docs/scoring.md)**: Detailed breakdown of evaluation algorithms per benchmark dataset.
