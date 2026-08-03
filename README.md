@@ -2,6 +2,9 @@
 
 A clean, modular Python suite for evaluating Large Language Models (LLMs) across standardized benchmark datasets (**MMLU**, **MMLU-Pro**, **GSM8K**, **HellaSwag**, **TruthfulQA**) using PyTorch / Transformers on multi-GPU systems.
 
+> [!NOTE]
+> **Evaluation Protocol Note**: This suite conducts **0-shot direct model evaluation** (direct option/answer prediction) and does not use 5-shot Chain-of-Thought (CoT) exemplars or multi-path sampling. Scores represent direct zero-shot model performance and will differ from self-reported 5-shot CoT leaderboards (see [Protocol Differences Guide](docs/scoring.md#protocol-differences--leaderboard-discrepancy-analysis)).
+
 ---
 
 ## Quickstart Guide
